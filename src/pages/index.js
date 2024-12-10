@@ -2,29 +2,11 @@
 import '../assets/index.css';
 import { initialCards } from '../components/cards';
 import { createCard, likeCard, deleteCard } from '../components/card';
-import { openModal, closeModal, handleModalClick } from '../components/modal';
+import { openModal, closeModal } from '../components/modal';
 
-const placeList = document.querySelector('.places__list');
+const cardContainer = document.querySelector('.places__list');
 
-// Начальная загрузка карточек
-initialCards.forEach((item) => {
-  const card = createCard(item, likeCard, deleteCard, handleCardImageClick);
-
-  renderCard(card);
-});
-
-// Добавление карточек в список (рендеринг)
-function renderCard(card, type = 'append') {
-  switch (type) {
-    case 'append':
-      placeList.append(card);
-      break;
-
-    case 'prepend':
-      placeList.prepend(card);
-      break;
-  }
-}
+const popups = document.querySelectorAll('.popup');
 
 // Модальное окно добавления карточки
 const cardForm = document.forms['new-place'];
@@ -39,6 +21,38 @@ const cardImagePopup = document.querySelector('.popup_type_image');
 
 const cardImagePicture = cardImagePopup.querySelector('.popup__image');
 const cardImageCaption = cardImagePopup.querySelector('.popup__caption');
+
+// Модальное окно профиля
+const profileForm = document.forms['edit-profile'];
+const profileFormName = profileForm['name'];
+const profileFormJob = profileForm['description'];
+
+const profileElement = document.querySelector('.profile__info');
+const profileNameInput = profileElement.querySelector('.profile__title');
+const profileJobInput = profileElement.querySelector('.profile__description');
+
+const profilePopup = document.querySelector('.popup_type_edit');
+const profileEditButton = document.querySelector('.profile__edit-button');
+
+// Начальная загрузка карточек
+initialCards.forEach(async (item) => {
+  const card = createCard(item, likeCard, deleteCard, handleCardImageClick);
+
+  renderCard(card);
+});
+
+// Добавление карточек в список (рендеринг)
+function renderCard(card, type = 'append') {
+  switch (type) {
+    case 'append':
+      cardContainer.append(card);
+      break;
+
+    case 'prepend':
+      cardContainer.prepend(card);
+      break;
+  }
+}
 
 // Обработка кликов на изображение карточки
 function handleCardImageClick({ name, link }) {
@@ -59,31 +73,15 @@ function handleFormNewCardSubmit(evt) {
   cardForm.reset();
 }
 
-cardForm.addEventListener('submit', handleFormNewCardSubmit);
-
-// Модальное окно профиля
-const profileForm = document.forms['edit-profile'];
-const profileFormName = profileForm['name'];
-const profileFormJob = profileForm['description'];
-
-const profileElement = document.querySelector('.profile__info');
-const profileNameInput = profileElement.querySelector('.profile__title');
-const profileJobInput = profileElement.querySelector('.profile__description');
-
-const profilePopup = document.querySelector('.popup_type_edit');
-const profileEditButton = document.querySelector('.profile__edit-button');
-
 // Обработка изменений профиля
 function handleFormProfileSubmit(evt) {
   evt.preventDefault();
 
-  profileElement.querySelector('.profile__title').textContent = profileFormName.value;
-  profileElement.querySelector('.profile__description').textContent = profileFormJob.value;
+  profileNameInput.textContent = profileFormName.value;
+  profileJobInput.textContent = profileFormJob.value;
 
   closeModal(profilePopup);
 }
-
-profileForm.addEventListener('submit', handleFormProfileSubmit);
 
 // Открытие модального окна для редактирования профиля
 profileEditButton.addEventListener('click', () => {
@@ -93,10 +91,23 @@ profileEditButton.addEventListener('click', () => {
   openModal(profilePopup);
 });
 
+// Для связи формы с обработчиками
+cardForm.addEventListener('submit', handleFormNewCardSubmit);
+profileForm.addEventListener('submit', handleFormProfileSubmit);
+
 // Открытие модального окна для добавления карточки
 cardAddButton.addEventListener('click', () => openModal(cardPopup));
 
 // Закрытие окон при клике на оверлей или кнопку закрытия
-profilePopup.addEventListener('click', handleModalClick);
-cardPopup.addEventListener('click', handleModalClick);
-cardImagePopup.addEventListener('click', handleModalClick);
+popups.forEach((popup) => {
+  const closeButton = popup.querySelector('.popup__close');
+  closeButton.addEventListener('click', () => closeModal(popup));
+
+  popup.addEventListener('mousedown', (evt) => {
+    if (evt.target === evt.currentTarget) {
+      closeModal(popup);
+    }
+  });
+
+  popup.classList.add('popup_is-animated'); // Плавная анимация для попапов
+});
